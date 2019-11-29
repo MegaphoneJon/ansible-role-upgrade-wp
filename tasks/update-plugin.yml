@@ -1,0 +1,46 @@
+---
+- name: Update a single plugin
+  command: "wp plugin update {{ item.key }}"
+  args:
+    chdir: "{{ webroot }}"
+  become: yes
+  become_user: "{{ run_as_user }}"
+
+- name: Get the new plugin version number
+  shell: "wp plugin list --format=csv | grep ^{{ item.key }} | cut -d ',' -f 4 "
+  args:
+    chdir: "{{ webroot }}"
+  register: new_version_number
+  become: yes
+  become_user: "{{ run_as_user }}"
+
+- name: git add the plugin
+  command: git add -v -A
+  args:
+    chdir: "{{ webroot }}"
+  register: add_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  changed_when: add_result.stdout != ''
+  failed_when: add_result.stderr != ''
+
+- name: git commit Civi + patches
+  command: "git commit -m 'WP plugin: {{ item.key }} {{ new_version_number.stdout }}'"
+  args:
+    chdir: "{{ webroot }}"
+  register: commit_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  changed_when: commit_result.rc == 0
+  failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
+
+- name: git push
+  command: git push --set-upstream origin master
+  args:
+    chdir: "{{ webroot }}"
+  register: push_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  when: internal_repo == "1" and (git_repo_push_url is search("ssh://"))
+  changed_when: push_result.rc == 0 and push_result.stderr != 'Everything up-to-date'
+  failed_when: not(push_result.rc == 0)

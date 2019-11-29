@@ -1,22 +1,23 @@
 ---
 - name: Get a list of plugins that need updating
-  shell: "wp plugin list | grep all | cut -f 1"
+#  shell: "wp plugin status | grep '^ U' | cut -f 3 -d ' '"
+  shell: "wp plugin status | grep '^ U' | tr -s ' ' | cut -f 3,4 -d ' '"
   args:
-    chdir: "{{ item.value.webroot }}"
-  with_dict: "{{ sites }}"
-  changed_when: false
+    chdir: "{{ webroot }}"
   register: plugins_needing_upgrade
+  changed_when: false
+  failed_when: false
+  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
 
-- debug: var=item
-  with_subelements:
-    - "{{ plugins_needing_upgrade.results }}"
-    - stdout_lines
+# TODO: This is actually not necessary, we don't need the OLD WP plugin version
+- name: Create a dict of plugins/versions
+  set_fact:
+    plugins_dict: "{{ plugins_dict|default({}) | combine( {item.split()[0]: item.split()[1]} ) }}"
+  with_items: "{{ plugins_needing_upgrade.stdout_lines}}"
+  when: plugins_needing_upgrade.stdout_lines is defined
 
-# TODO: Check the plugin against the safe upgrade list in defaults/main.yml
-- name: Upgrade plugins
-  command: "wp plugin get {{ item }}"
-  args:
-    chdir: "{{ item.item.value.webroot }}"
-  with_subelements:
-    - "{{ plugins_needing_upgrade.results }}"
-    - stdout_lines
+- name: Update plugins
+  include_tasks: 
+    file: update-plugin.yml
+  with_dict: "{{ plugins_dict }}"
+  when: plugins_dict is defined
