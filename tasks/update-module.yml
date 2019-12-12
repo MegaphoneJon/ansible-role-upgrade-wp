@@ -1,20 +1,20 @@
 ---
-- name: Update a single plugin
-  command: "wp plugin update {{ item.key }}"
+- name: Update a single plugin/theme
+  command: "wp {{ module_type }} update {{ item }}"
   args:
     chdir: "{{ webroot }}"
   become: yes
   become_user: "{{ run_as_user }}"
 
-- name: Get the new plugin version number
-  shell: "wp plugin list --format=csv | grep ^{{ item.key }} | cut -d ',' -f 4 "
+- name: Get the new plugin/theme version number
+  shell: "wp {{ module_type }} list --format=csv | grep ^{{ item }} | cut -d ',' -f 4 "
   args:
     chdir: "{{ webroot }}"
   register: new_version_number
   become: yes
   become_user: "{{ run_as_user }}"
 
-- name: git add the plugin
+- name: git add the plugin/theme
   command: git add -v -A
   args:
     chdir: "{{ webroot }}"
@@ -24,8 +24,8 @@
   changed_when: add_result.stdout != ''
   failed_when: add_result.stderr != ''
 
-- name: git commit Civi + patches
-  command: "git commit -m 'WP plugin: {{ item.key }} {{ new_version_number.stdout }}'"
+- name: git commit plugin/theme
+  command: "git commit -m 'WP {{ module_type }} upgrade: {{ item }} {{ new_version_number.stdout }}'"
   args:
     chdir: "{{ webroot }}"
   register: commit_result
