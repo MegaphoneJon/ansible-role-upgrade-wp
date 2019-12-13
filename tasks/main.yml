@@ -1,4 +1,54 @@
 ---
+- name: See if core needs updating
+  command: wp core check-update --field=version --format=csv
+  args:
+    chdir: "{{ webroot }}"
+  register: latest_core_version
+  changed_when: false
+  failed_when: false
+  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
+
+- name: Update core
+  command: wp core update
+  args:
+    chdir: "{{ webroot }}"
+  when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
+
+- name: git add the core update
+  command: git add -v -A
+  args:
+    chdir: "{{ webroot }}"
+  register: add_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  changed_when: add_result.stdout != ''
+  failed_when: add_result.stderr != ''
+  when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
+
+- name: git commit core update
+  command: "git commit -m 'WP core upgrade: Version {{ latest_core_version.stdout }}'"
+  args:
+    chdir: "{{ webroot }}"
+  register: commit_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  changed_when: commit_result.rc == 0
+  failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
+  when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
+
+- name: git push
+  command: git push --set-upstream origin master
+  args:
+    chdir: "{{ webroot }}"
+  register: push_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  when: internal_repo == "1" and (git_repo_push_url is search("ssh://"))
+  changed_when: push_result.rc == 0 and push_result.stderr != 'Everything up-to-date'
+  failed_when: not(push_result.rc == 0)
+  when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
+
+
 - name: Get a list of plugins that need updating
   shell: "wp plugin status | grep '^ U' | tr -s ' ' | cut -f 3 -d ' '"
   args:
