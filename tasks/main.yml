@@ -1,4 +1,12 @@
 ---
+- name: Get current git commit hash
+  command: git rev-parse HEAD
+  args:
+    chdir: "{{ webroot }}"
+  register: latest_commit
+  changed_when: FALSE
+  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
+
 - name: See if core needs updating
   command: wp core check-update --field=version --format=csv
   args:
@@ -12,6 +20,8 @@
   command: wp core update
   args:
     chdir: "{{ webroot }}"
+  become: yes
+  become_user: "{{ run_as_user }}"
   when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
 
 - name: git add the core update
@@ -86,3 +96,19 @@
     file: update-module.yml
   loop: "{{ themes_needing_upgrade.stdout_lines }}"
   when: themes_needing_upgrade.stdout_lines is defined
+
+- name: Get git changelog
+  command: "git log --oneline {{ latest_commit.stdout }}..HEAD"
+  args:
+    chdir: "{{ webroot }}"
+  register: changelog
+  changed_when: FALSE
+  when: latest_commit.stdout is defined
+
+
+- name: Print git changelog
+  debug:
+    var: changelog.stdout
+  changed_when: FALSE
+  when: latest_commit.stdout is defined
+
