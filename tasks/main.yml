@@ -7,6 +7,14 @@
   changed_when: FALSE
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
 
+- name: Clear "last updated" times so we can get the latest update info
+  command: wp transient delete --network --all
+  args:
+    chdir: "{{ webroot }}"
+  changed_when: false
+  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
+
+
 - name: See if core needs updating
   command: wp core check-update --field=version --format=csv
   args:
