@@ -54,24 +54,13 @@
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
   when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
 
-- name: git push
-  command: git push --set-upstream origin master
-  args:
-    chdir: "{{ webroot }}"
-  register: push_result
-  become: yes
-  become_user: "{{ run_as_user }}"
-  when: internal_repo == "1" and (git_repo_push_url is search("ssh://"))
-  changed_when: push_result.rc == 0 and push_result.stderr != 'Everything up-to-date'
-  failed_when: not(push_result.rc == 0)
-  when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
-
-
 - name: Get a list of plugins that need updating
   shell: "wp plugin status | grep '^ U' | tr -s ' ' | cut -f 3 -d ' '"
   args:
     chdir: "{{ webroot }}"
   register: plugins_needing_upgrade
+  become: yes
+  become_user: "{{ run_as_user }}"
   changed_when: false
   failed_when: false
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
@@ -105,6 +94,17 @@
   loop: "{{ themes_needing_upgrade.stdout_lines }}"
   when: themes_needing_upgrade.stdout_lines is defined
 
+- name: git push
+  command: git push --set-upstream origin master
+  args:
+    chdir: "{{ webroot }}"
+  register: push_result_addl
+  become: yes
+  become_user: "{{ run_as_user }}"
+  when: internal_repo == "1" and (git_repo_push_url is search("ssh://"))
+  changed_when: push_result_addl.rc == 0 and push_result_addl.stderr != 'Everything up-to-date'
+  failed_when: not(push_result_addl.rc == 0)
+
 - name: Get git changelog
   command: "git log --oneline {{ latest_commit.stdout }}..HEAD"
   args:
@@ -113,10 +113,15 @@
   changed_when: FALSE
   when: latest_commit.stdout is defined
 
-
 - name: Print git changelog
   debug:
     var: changelog.stdout
   changed_when: FALSE
   when: latest_commit.stdout is defined
+
+- name: List changelog links
+  debug:
+    msg: "https://wordpress.org/plugins/{{ item }}/#developers"
+  loop: "{{ plugins_needing_upgrade.stdout_lines }}"
+  when: plugins_needing_upgrade.stdout_lines is defined
 
