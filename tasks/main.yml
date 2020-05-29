@@ -13,7 +13,8 @@
     chdir: "{{ webroot }}"
   changed_when: false
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
-
+  become: yes
+  become_user: "{{ run_as_user }}"
 
 - name: See if core needs updating
   command: wp core check-update --field=version --format=csv
@@ -23,6 +24,8 @@
   changed_when: false
   failed_when: false
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
+  become: yes
+  become_user: "{{ run_as_user }}"
 
 - name: Update core
   command: wp core update
@@ -95,7 +98,7 @@
   when: themes_needing_upgrade.stdout_lines is defined
 
 - name: git push
-  command: git push --set-upstream origin master
+  command: git push
   args:
     chdir: "{{ webroot }}"
   register: push_result_addl
