@@ -65,7 +65,7 @@
   become: yes
   become_user: "{{ run_as_user }}"
   changed_when: false
-  failed_when: false
+  failed_when: plugins_needing_upgrade.stderr != ''
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
 
 - name: Set module variable to plugin
@@ -83,8 +83,10 @@
   args:
     chdir: "{{ webroot }}"
   register: themes_needing_upgrade
+  become: yes
+  become_user: "{{ run_as_user }}"
   changed_when: false
-  failed_when: false
+  failed_when: themes_needing_upgrade.stderr != ''
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
 
 - name: Set module variable to theme
