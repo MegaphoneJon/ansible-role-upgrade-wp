@@ -6,3 +6,6 @@ safe_upgrade_plugins:
   - so-widgets-bundle
   - user-role-editor-pro
   - wp-mail-smtp
+plugin_redlist:
+  - caldera-forms
+  - stripe-cf

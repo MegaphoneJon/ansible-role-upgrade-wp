@@ -87,7 +87,7 @@
   include_tasks:
     file: update-module.yml
   loop: "{{ plugins_needing_upgrade.stdout_lines }}"
-  when: plugins_needing_upgrade.stdout_lines is defined
+  when: plugins_needing_upgrade.stdout_lines is defined and item not in plugin_redlist
 
 - name: Get a list of themes that need updating
   shell: "wp theme status | grep '^ U' | tr -s ' ' | cut -f 3 -d ' '"
