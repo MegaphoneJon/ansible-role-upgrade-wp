@@ -110,6 +110,39 @@
   loop: "{{ themes_needing_upgrade.stdout_lines }}"
   when: themes_needing_upgrade.stdout_lines is defined
 
+- name: Update translations
+  command: "{{ item }}"
+  args:
+    chdir: "{{ webroot }}"
+  become: yes
+  become_user: "{{ run_as_user }}"
+  register: translation_result
+  with_items:
+    - 'wp language core update'
+    - 'wp language plugin update --all'
+    - 'wp language theme update --all'
+  changed_when: translation_result.stdout is not search("Translations are up to date.")
+
+- name: git add translations
+  command: git add -v -A
+  args:
+    chdir: "{{ webroot }}"
+  register: add_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  changed_when: add_result.stdout != ''
+  failed_when: add_result.stderr != ''
+
+- name: git commit translations
+  command: "git commit -m 'WP translation updates'"
+  args:
+    chdir: "{{ webroot }}"
+  register: commit_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  changed_when: commit_result.rc == 0
+  failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
+
 - name: git push
   command: git push
   args:
