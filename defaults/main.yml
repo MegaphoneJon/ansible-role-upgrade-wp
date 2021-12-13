@@ -7,7 +7,6 @@ safe_upgrade_plugins:
   - user-role-editor-pro
   - wp-mail-smtp
 plugin_redlist:
-  - caldera-forms
   - stripe-cf
   - advanced-custom-fields-pro
   - cf-civicrm
