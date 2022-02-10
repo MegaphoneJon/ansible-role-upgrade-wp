@@ -3,7 +3,7 @@
   git:
     repo: "{{ git_repo_url }}"
     dest: "{{ gitroot }}"
-    version: master
+    version: "{{ git_main_branch }}"
     track_submodules: no
   become: yes
   become_user: "{{ run_as_user }}"
