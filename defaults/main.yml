@@ -10,3 +10,6 @@ plugin_redlist:
   - stripe-cf
   - advanced-custom-fields-pro
   - cf-civicrm
+  - buddypress
+theme_redlist:
+  - boss

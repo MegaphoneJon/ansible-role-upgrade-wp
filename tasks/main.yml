@@ -9,7 +9,6 @@
   become_user: "{{ run_as_user }}"
   when: git_repo_name is not none
 
-
 - name: Get current git commit hash
   command: git rev-parse HEAD
   args:
@@ -108,7 +107,7 @@
   include_tasks:
     file: update-module.yml
   loop: "{{ themes_needing_upgrade.stdout_lines }}"
-  when: themes_needing_upgrade.stdout_lines is defined
+  when: themes_needing_upgrade.stdout_lines is defined and item not in theme_redlist
 
 - name: Update translations
   command: "{{ item }}"
