@@ -14,6 +14,8 @@
   args:
     chdir: "{{ webroot }}"
   register: latest_commit
+  become: yes
+  become_user: "{{ run_as_user }}"
   changed_when: FALSE
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
 
@@ -158,6 +160,8 @@
   args:
     chdir: "{{ webroot }}"
   register: changelog
+  become: yes
+  become_user: "{{ run_as_user }}"
   changed_when: FALSE
   when: latest_commit.stdout is defined
 
