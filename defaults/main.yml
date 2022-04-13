@@ -11,6 +11,5 @@ plugin_redlist:
   - advanced-custom-fields-pro
   - cf-civicrm
   - buddypress
-  - civicrm-wp-profile-sync
 theme_redlist:
   - boss
