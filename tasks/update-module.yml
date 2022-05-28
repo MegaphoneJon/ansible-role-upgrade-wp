@@ -5,6 +5,7 @@
     chdir: "{{ webroot }}"
   become: yes
   become_user: "{{ run_as_user }}"
+  tags: upgrade-plugins
 
 - name: Get the new plugin/theme version number
   shell: "wp {{ module_type }} list --format=csv | grep ^{{ item }} | cut -d ',' -f 4 "
@@ -13,6 +14,7 @@
   register: new_version_number
   become: yes
   become_user: "{{ run_as_user }}"
+  tags: upgrade-plugins
 
 - name: git add the plugin/theme
   command: git add -v -A
@@ -23,6 +25,7 @@
   become_user: "{{ run_as_user }}"
   changed_when: add_result.stdout != ''
   failed_when: add_result.stderr != ''
+  tags: upgrade-plugins
 
 - name: git commit plugin/theme
   command: "git commit -m 'WP {{ module_type }} upgrade: {{ item }} {{ new_version_number.stdout }}'"
@@ -33,3 +36,4 @@
   become_user: "{{ run_as_user }}"
   changed_when: commit_result.rc == 0
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
+  tags: upgrade-plugins
