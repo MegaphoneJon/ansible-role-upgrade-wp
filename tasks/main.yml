@@ -1,4 +1,13 @@
 ---
+- name: Ensure file owner/perms are correct
+  file:
+    path: "{{ webroot }}"
+    state: directory
+    mode: 02770
+    owner: "{{ run_as_user }}"
+    group: "{{ run_as_user }}"
+  become: yes
+
 - name: git pull
   git:
     repo: "{{ git_repo_url }}"
