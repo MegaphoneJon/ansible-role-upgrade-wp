@@ -3,9 +3,10 @@
   file:
     path: "{{ webroot }}"
     state: directory
-    mode: 02770
+    mode: ug+rw
     owner: "{{ run_as_user }}"
     group: "{{ run_as_user }}"
+    recurse: yes
   become: yes
 
 - name: git pull
