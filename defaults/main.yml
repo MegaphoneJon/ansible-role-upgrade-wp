@@ -9,7 +9,13 @@ safe_upgrade_plugins:
 plugin_redlist:
   - stripe-cf
   - advanced-custom-fields-pro
+  - elementor-pro
   - cf-civicrm
   - buddypress
+  - acfml
+  - sitepress-multilingual-cms
+  - wpml-string-translation
+  - wpml-media-translation
 theme_redlist:
   - boss
+  - Total
