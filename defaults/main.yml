@@ -16,6 +16,7 @@ plugin_redlist:
   - sitepress-multilingual-cms
   - wpml-string-translation
   - wpml-media-translation
+  - gravityforms
 theme_redlist:
   - boss
   - Total
