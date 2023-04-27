@@ -163,7 +163,7 @@
   register: push_result_addl
   become: yes
   become_user: "{{ run_as_user }}"
-  when: internal_repo == "1" and (git_repo_push_url is search("ssh://"))
+  when: git_repo_push_url is search("ssh://")
   changed_when: push_result_addl.rc == 0 and push_result_addl.stderr != 'Everything up-to-date'
   failed_when: not(push_result_addl.rc == 0)
   tags: upgrade-plugins
