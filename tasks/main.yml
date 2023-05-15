@@ -90,6 +90,25 @@
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
   tags: upgrade-plugins
 
+- name: Identify if any plugins need downloading on a live site
+  set_fact:
+    paid_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines|intersect(wp_paid_modules) }}"
+  when: wp_paid_modules is defined
+  tags: upgrade-plugins
+
+- name: Generate a unique list of paid plugins needing an upgrade
+  set_fact:
+    unique_paid_plugins_needing_upgrade: "{{ ansible_play_hosts_all|map('extract', hostvars, 'paid_plugins_needing_upgrade')|list|flatten|unique }}"
+    run_once: true
+  tags: upgrade-plugins
+
+- debug:
+    var: unique_paid_plugins_needing_upgrade
+  tags: upgrade-plugins
+
+- fail:
+  tags: upgrade-plugins
+
 - name: Set module variable to plugin
   set_fact:
     module_type: "plugin"
