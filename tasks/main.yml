@@ -90,6 +90,11 @@
   when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
   tags: upgrade-plugins
 
+- name: Set module variable to plugin
+  set_fact:
+    module_type: "plugin"
+  tags: upgrade-plugins
+
 - name: Identify if any plugins need downloading on a live site
   set_fact:
     paid_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines|intersect(wp_paid_modules) }}"
@@ -102,16 +107,17 @@
     run_once: true
   tags: upgrade-plugins
 
-- debug:
-    var: unique_paid_plugins_needing_upgrade
+- name: Download paid plugins
+  include_tasks:
+    file: acquire-paid-module.yml
+  loop: "{{ unique_paid_plugins_needing_upgrade }}"
+  when: unique_paid_plugins_needing_upgrade is defined
   tags: upgrade-plugins
 
-- fail:
-  tags: upgrade-plugins
-
-- name: Set module variable to plugin
-  set_fact:
-    module_type: "plugin"
+- name: Update paid plugins
+  include_tasks:
+    file: update-paid-module.yml
+  loop: "{{ paid_plugins_needing_upgrade }}"
   tags: upgrade-plugins
 
 - name: Update plugins

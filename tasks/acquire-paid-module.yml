@@ -1,0 +1,33 @@
+---
+- block:
+    # Load a dict that has a mapping of which plugins can be legitimately downloaded from which sites.
+  - name: Update a paid plugin/theme
+    command: "wp {{ module_type }} update {{ item }}"
+    args:
+      chdir: "{{ wp_paid_modules[item].module_root }}"
+    become: yes
+    become_user: "{{ wp_paid_modules[item].run_as }}"
+
+  - name: Zip it up
+    community.general.archive:
+      path: "{{ wp_paid_modules[item].module_root }}/{{ item }}"
+      dest: "/tmp/{{ item }}.zip"
+      format: zip
+    become: yes
+    become_user: "{{ wp_paid_modules[item].run_as }}"
+
+  - name: Download locally
+    ansible.builtin.fetch:
+      src: "/tmp/{{ item }}.zip"
+      dest: "/tmp/{{ item }}.zip"
+      flat: true
+
+  - name: Clean up the download
+    shell: "git checkout {{ wp_paid_modules[item].module_root }} && git clean -fd {{ wp_paid_modules[item].module_root }}"
+    args:
+      chdir: "{{ wp_paid_modules[item].module_root }}"
+    become: yes
+    become_user: "{{ wp_paid_modules[item].run_as }}"
+  delegate_to: "{{ wp_paid_modules[item].site }}"
+  run_once: true
+  tags: upgrade-plugins
