@@ -1,4 +1,5 @@
 ---
+# TODO: Merge with regular update-module.yml
 - name: Update a single plugin/theme (via install)
   command: "wp {{ module_type }} install /tmp/{{ item }}.zip --force"
   args:

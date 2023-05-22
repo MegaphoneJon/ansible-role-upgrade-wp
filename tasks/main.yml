@@ -9,6 +9,7 @@
     recurse: yes
   become: yes
 
+#FIXME: Should work on non-Gitea sites like JASS
 - name: git pull
   git:
     repo: "{{ git_repo_url }}"
