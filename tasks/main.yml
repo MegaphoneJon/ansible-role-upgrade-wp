@@ -98,7 +98,7 @@
 
 - name: Identify if any plugins need downloading on a live site
   set_fact:
-    paid_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines|intersect(wp_paid_modules) }}"
+    paid_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines|default([], True)|intersect(wp_paid_modules) }}"
   when: wp_paid_modules is defined
   tags: upgrade-plugins
 
@@ -107,6 +107,7 @@
     unique_paid_plugins_needing_upgrade: "{{ ansible_play_hosts_all|map('extract', hostvars, 'paid_plugins_needing_upgrade')|list|flatten|unique }}"
     run_once: true
   tags: upgrade-plugins
+  when: paid_plugins_needing_upgrade|bool
 
 - name: Download paid plugins
   include_tasks:
