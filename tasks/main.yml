@@ -107,7 +107,6 @@
     unique_paid_plugins_needing_upgrade: "{{ ansible_play_hosts_all|map('extract', hostvars, 'paid_plugins_needing_upgrade')|list|flatten|unique }}"
     run_once: true
   tags: upgrade-plugins
-  when: paid_plugins_needing_upgrade|bool
 
 - name: Download paid plugins
   include_tasks:
