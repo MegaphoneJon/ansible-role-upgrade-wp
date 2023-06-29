@@ -27,14 +27,12 @@
   become: yes
   become_user: "{{ run_as_user }}"
   changed_when: FALSE
-  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
 
 - name: Clear "last updated" times so we can get the latest update info
   command: wp transient delete --network --all
   args:
     chdir: "{{ webroot }}"
   changed_when: false
-  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
   become: yes
   become_user: "{{ run_as_user }}"
 
@@ -45,7 +43,6 @@
   register: latest_core_version
   changed_when: false
   failed_when: false
-  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
   become: yes
   become_user: "{{ run_as_user }}"
 
@@ -88,7 +85,50 @@
   become_user: "{{ run_as_user }}"
   changed_when: false
   failed_when: plugins_needing_upgrade.stderr != ''
-  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
+  tags: upgrade-plugins
+
+
+# If we find others besides "Total" plugins, we'll probably make a helper script for us with "wp eval".
+- name: Check for paid plugins needing a URL download
+  ansible.builtin.shell: "wp theme list | grep '^Total\\W'"
+  args:
+    chdir: "{{ webroot }}"
+  register: total_theme_installed
+  changed_when: false
+  failed_when: plugins_needing_upgrade.stderr != ''
+  become: yes
+  become_user: "{{ run_as_user }}"
+  tags: upgrade-plugins
+
+- name: Check if Total plugins need upgrading
+  shell: >
+    wp eval
+    'require_once getcwd() . "/wp-content/themes/Total/inc/admin/recommended-plugins.php";
+    require_once getcwd() . "/wp-content/themes/Total/inc/lib/tgmpa/class-tgm-plugin-activation.php";
+    $recommended = new TotalTheme\Admin\Recommended_Plugins();
+    $recommended->tmpa_register();
+    $plugin_table = new TGMPA_List_Table();
+    wp_clean_plugins_cache( false );
+    $plugin_table->prepare_items();
+    $needsUpgrade = [];
+    foreach($plugin_table->items as $plugin) {
+      if (version_compare($plugin["installed_version"], $plugin["available_version"], "<")) {
+        echo $plugin["slug"] . "\n";
+        // $needsUpgrade[] = $plugin["slug"];
+      }
+    }'
+  args:
+    chdir: "{{ webroot }}"
+  register: total_plugins_needing_upgrade
+  changed_when: false
+  tags: upgrade-plugins
+  when: total_theme_installed.stdout != ''
+  become_user: "{{ run_as_user }}"
+
+- debug: 
+    var: total_plugins_needing_upgrade
+  tags: upgrade-plugins
+- fail:
   tags: upgrade-plugins
 
 - name: Set module variable to plugin
@@ -118,7 +158,7 @@
 
 - name: Update paid plugins
   include_tasks:
-    file: update-paid-module.yml
+    file: update-module.yml
   loop: "{{ paid_plugins_needing_upgrade }}"
   tags: upgrade-plugins
 
@@ -138,7 +178,6 @@
   become_user: "{{ run_as_user }}"
   changed_when: false
   failed_when: themes_needing_upgrade.stderr != ''
-  when: cms == 'WordPress' and contract_type is search("WordPress Maintenance")
 
 - name: Set module variable to theme
   set_fact:
