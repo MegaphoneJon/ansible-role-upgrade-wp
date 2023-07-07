@@ -8,14 +8,10 @@ safe_upgrade_plugins:
   - wp-mail-smtp
 plugin_redlist:
   - stripe-cf
-  - advanced-custom-fields-pro
   - cf-civicrm
   - buddypress
-  - elementor-pro
   - acfml
   - sitepress-multilingual-cms
-  - wpml-string-translation
-  - wpml-media-translation
   - gravityformsmailchimp
 theme_redlist:
   - boss
