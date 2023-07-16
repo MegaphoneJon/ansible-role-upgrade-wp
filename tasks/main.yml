@@ -9,7 +9,6 @@
     recurse: yes
   become: yes
 
-#FIXME: Should work on non-Gitea sites like JASS
 - name: git pull
   git:
     repo: "{{ git_repo_url }}"
@@ -19,6 +18,7 @@
   become_user: "{{ run_as_user }}"
   when: git_repo_url is not none
 
+# WP CORE
 - name: Get current git commit hash
   command: git rev-parse HEAD
   args:
@@ -76,6 +76,7 @@
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
   when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
 
+# PLUGINS
 - name: Get a list of plugins that need updating
   shell: "wp plugin status | grep '^ U' | tr -s ' ' | cut -f 3 -d ' '"
   args:
@@ -87,15 +88,13 @@
   failed_when: plugins_needing_upgrade.stderr != ''
   tags: upgrade-plugins
 
-
-# If we find others besides "Total" plugins, we'll probably make a helper script for us with "wp eval".
-- name: Check for paid plugins needing a URL download
+- name: Check for paid plugins from Total theme
   ansible.builtin.shell: "wp theme list | grep '^Total\\W'"
   args:
     chdir: "{{ webroot }}"
   register: total_theme_installed
   changed_when: false
-  failed_when: plugins_needing_upgrade.stderr != ''
+  failed_when: false
   become: yes
   become_user: "{{ run_as_user }}"
   tags: upgrade-plugins
@@ -107,15 +106,16 @@
     require_once getcwd() . "/wp-content/themes/Total/inc/lib/tgmpa/class-tgm-plugin-activation.php";
     $recommended = new TotalTheme\Admin\Recommended_Plugins();
     $recommended->tmpa_register();
+    // This has the download URLs.
+    $tgmpa = TGM_Plugin_Activation::get_instance();
     $plugin_table = new TGMPA_List_Table();
     wp_clean_plugins_cache( false );
     $plugin_table->prepare_items();
     $needsUpgrade = [];
     foreach($plugin_table->items as $plugin) {
-      if (version_compare($plugin["installed_version"], $plugin["available_version"], "<")) {
-        echo $plugin["slug"] . "\n";
-        // $needsUpgrade[] = $plugin["slug"];
-      }
+    if (version_compare($plugin["installed_version"], $plugin["available_version"], "<")) {
+    echo $plugin["slug"] . ": " .  $tgmpa->plugins[$plugin["slug"]]["source"] . "\n";
+    }
     }'
   args:
     chdir: "{{ webroot }}"
@@ -125,12 +125,6 @@
   when: total_theme_installed.stdout != ''
   become_user: "{{ run_as_user }}"
 
-- debug: 
-    var: total_plugins_needing_upgrade
-  tags: upgrade-plugins
-- fail:
-  tags: upgrade-plugins
-
 - name: Set module variable to plugin
   set_fact:
     module_type: "plugin"
@@ -139,13 +133,14 @@
 - name: Identify if any plugins need downloading on a live site
   set_fact:
     paid_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines|default([], True)|intersect(wp_paid_modules) }}"
+    module_source: zip
   when: wp_paid_modules is defined
   tags: upgrade-plugins
 
 - name: Generate a unique list of paid plugins needing an upgrade
   set_fact:
     unique_paid_plugins_needing_upgrade: "{{ ansible_play_hosts_all|map('extract', hostvars, 'paid_plugins_needing_upgrade')|list|flatten|unique }}"
-    run_once: true
+  run_once: true
   when: paid_plugins_needing_upgrade is defined and paid_plugins_needing_upgrade|length > 0
   tags: upgrade-plugins
 
@@ -156,17 +151,34 @@
   when: unique_paid_plugins_needing_upgrade is defined
   tags: upgrade-plugins
 
+#- name: Download Total plugins
+#  get_url:
+#    url: "{{ item.value }}"
+#    dest: "/tmp/{{ item.key }}.zip"
+#    force: true
+
 - name: Update paid plugins
   include_tasks:
     file: update-module.yml
   loop: "{{ paid_plugins_needing_upgrade }}"
   tags: upgrade-plugins
 
+#- name: Update Total plugins
+#  include_tasks:
+#    file: update-module.yml
+#  loop: "{{ total_plugins_needing_upgrade }}"
+#  tags: upgrade-plugins
+
+- name: Determine which plugins should be updated normally
+  set_fact:
+    normal_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines | difference(paid_plugins_needing_upgrade) }}"
+    module_source: normal
+
 - name: Update plugins
   include_tasks:
     file: update-module.yml
   loop: "{{ plugins_needing_upgrade.stdout_lines }}"
-  when: plugins_needing_upgrade.stdout_lines is defined and item not in plugin_redlist
+  when: normal_plugins_needing_upgrade is defined and item not in plugin_redlist
   tags: upgrade-plugins
 
 - name: Get a list of themes that need updating

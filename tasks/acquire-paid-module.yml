@@ -21,6 +21,8 @@
       src: "/tmp/{{ item }}.zip"
       dest: "/tmp/{{ item }}.zip"
       flat: true
+    become: yes
+    become_user: "{{ wp_paid_modules[item].run_as }}"
 
   - name: Clean up the download
     shell: "git checkout {{ wp_paid_modules[item].module_root }} && git clean -fd {{ wp_paid_modules[item].module_root }}"
