@@ -141,7 +141,7 @@
   set_fact:
     unique_paid_plugins_needing_upgrade: "{{ ansible_play_hosts_all|map('extract', hostvars, 'paid_plugins_needing_upgrade')|list|flatten|unique }}"
   run_once: true
-  when: paid_plugins_needing_upgrade is defined and paid_plugins_needing_upgrade|length > 0
+#  when: paid_plugins_needing_upgrade is defined and paid_plugins_needing_upgrade|length > 0
   tags: upgrade-plugins
 
 - name: Download paid plugins
@@ -241,7 +241,7 @@
   register: push_result_addl
   become: yes
   become_user: "{{ run_as_user }}"
-  when: git_repo_push_url is search("ssh://")
+  when: git_repo_push_url is not search("https://")
   changed_when: push_result_addl.rc == 0 and push_result_addl.stderr != 'Everything up-to-date'
   failed_when: not(push_result_addl.rc == 0)
   tags: upgrade-plugins
