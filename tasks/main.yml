@@ -171,14 +171,14 @@
 
 - name: Determine which plugins should be updated normally
   set_fact:
-    normal_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines | difference(paid_plugins_needing_upgrade) }}"
+    normal_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines | difference(wp_paid_modules | list) | difference(plugin_redlist) }}"
     module_source: normal
 
 - name: Update plugins
   include_tasks:
     file: update-module.yml
-  loop: "{{ plugins_needing_upgrade.stdout_lines }}"
-  when: normal_plugins_needing_upgrade is defined and item not in plugin_redlist
+  loop: "{{ normal_plugins_needing_upgrade|default([], True) }}"
+  when: normal_plugins_needing_upgrade is defined
   tags: upgrade-plugins
 
 - name: Get a list of themes that need updating
@@ -198,7 +198,7 @@
 - name: Update themes
   include_tasks:
     file: update-module.yml
-  loop: "{{ themes_needing_upgrade.stdout_lines }}"
+  loop: "{{ themes_needing_upgrade.stdout_lines|default([], true) | difference(theme_redlist) }}"
   when: themes_needing_upgrade.stdout_lines is defined and item not in theme_redlist
 
 - name: Update translations

@@ -1,5 +1,5 @@
 ---
-- name: Update a single plugin/theme (with wp-cli update)
+- name: Update a single plugin/theme (free)
   command: "wp {{ module_type }} update {{ item }}"
   args:
     chdir: "{{ webroot }}"
@@ -10,7 +10,7 @@
   tags: upgrade-plugins
   when: module_source == "normal"
 
-- name: Update a single plugin/theme (from zip file)
+- name: Update a single plugin/theme (paid, from zip file)
   command: "wp {{ module_type }} install /tmp/{{ item }}.zip --force"
   args:
     chdir: "{{ webroot }}"
