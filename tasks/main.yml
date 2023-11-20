@@ -76,6 +76,14 @@
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
   when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
 
+- name: db update
+  command: wp core update-db
+  args:
+    chdir: "{{ webroot }}"
+  become: yes
+  become_user: "{{ run_as_user }}"
+  when:  latest_core_version.stdout is defined and latest_core_version.stdout != ""
+
 # PLUGINS
 - name: Get a list of plugins that need updating
   shell: "wp plugin status | grep '^ U' | tr -s ' ' | cut -f 3 -d ' '"
