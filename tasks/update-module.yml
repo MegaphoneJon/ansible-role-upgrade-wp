@@ -28,6 +28,15 @@
   become_user: "{{ run_as_user }}"
   tags: upgrade-plugins
 
+- name: Apply patches to CiviCRM Profile Sync
+  patch:
+    src: "{{role_path}}/files/bp-profile-sync.diff"
+    backup: false
+    basedir: "{{ webroot }}"
+    strip: 1
+  become: yes
+  when: item == "civicrm-wp-profile-sync"
+  
 - name: git add the plugin/theme
   command: git add -v -A
   args:
