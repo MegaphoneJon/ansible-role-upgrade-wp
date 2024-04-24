@@ -1,7 +1,7 @@
-diff --git a/wp-content/plugins/civicrm-wp-profile-sync/includes/buddypress/cwps-bp-civicrm-custom-field.php b/wp-content/plugins/civicrm-wp-profile-sync/includes/buddypress/cwps-bp-civicrm-custom-field.php
-index 15c97dd79b..10bd3eb1db 100644
---- a/wp-content/plugins/civicrm-wp-profile-sync/includes/buddypress/cwps-bp-civicrm-custom-field.php
-+++ b/wp-content/plugins/civicrm-wp-profile-sync/includes/buddypress/cwps-bp-civicrm-custom-field.php
+diff --git a/includes/buddypress/cwps-bp-civicrm-custom-field.php b/includes/buddypress/cwps-bp-civicrm-custom-field.php
+index 18d68f7..2fa16aa 100644
+--- a/includes/buddypress/cwps-bp-civicrm-custom-field.php
++++ b/includes/buddypress/cwps-bp-civicrm-custom-field.php
 @@ -80,6 +80,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
  		'Money',
  		'Country',
@@ -10,7 +10,7 @@ index 15c97dd79b..10bd3eb1db 100644
  	];
  
  	/**
-@@ -160,10 +161,8 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -160,10 +161,8 @@ public function register_hooks() {
  		add_filter( 'cwps/bp/field/query_setting_choices', [ $this, 'query_setting_choices' ], 100, 4 );
  
  		// Filter the "CiviCRM Field" select to include only Custom Fields of the right type on the "Edit Field" sceen.
@@ -21,7 +21,7 @@ index 15c97dd79b..10bd3eb1db 100644
  		add_filter( 'cwps/bp/query_settings/custom_fields_filter', [ $this, 'date_settings_filter' ], 10, 3 );
  		add_filter( 'cwps/bp/query_settings/custom_fields_filter', [ $this, 'text_settings_filter' ], 10, 3 );
  		add_filter( 'cwps/bp/query_settings/custom_fields_filter', [ $this, 'textarea_settings_filter' ], 10, 3 );
-@@ -651,86 +650,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -644,86 +643,13 @@ public function checkbox_settings_get( $options, $field_type, $args ) {
  		}
  
  		// Get keyed array of settings.
@@ -50,17 +50,17 @@ index 15c97dd79b..10bd3eb1db 100644
 -		$field_data = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
 -
 -		// Bail if we don't get any.
--		if ( $field_data === false ) {
+-		if ( false === $field_data ) {
 -			return $choices;
 -		}
 -
 -		// Bail if it's not "String".
--		if ( $field_data['data_type'] !== 'String' ) {
+-		if ( 'String' !== $field_data['data_type'] ) {
 -			return $choices;
 -		}
 -
 -		// Bail if it's not "CheckBox".
--		if ( $field_data['html_type'] !== 'CheckBox' ) {
+-		if ( 'CheckBox' !== $field_data['html_type'] ) {
 -			return $choices;
 -		}
 -
@@ -79,8 +79,8 @@ index 15c97dd79b..10bd3eb1db 100644
 -	 *
 -	 * @since 0.5
 -	 *
--	 * @param array $filtered_fields The existing array of filtered Custom Fields.
--	 * @param array $custom_fields The array of Custom Fields.
+-	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+-	 * @param array  $custom_fields The array of Custom Fields.
 -	 * @param string $field_type The BuddyPress Field Type.
 -	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 -	 */
@@ -94,8 +94,8 @@ index 15c97dd79b..10bd3eb1db 100644
 -		// Filter Fields to include only Boolean/Radio.
 -		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 -			foreach ( $custom_group as $custom_field ) {
--				if ( ! empty( $custom_field['data_type'] ) && $custom_field['data_type'] == 'String' ) {
--					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'CheckBox' ) {
+-				if ( ! empty( $custom_field['data_type'] ) && 'String' === $custom_field['data_type'] ) {
+-					if ( ! empty( $custom_field['html_type'] ) && 'CheckBox' === $custom_field['html_type'] ) {
 -						$filtered_fields[ $custom_group_name ][] = $custom_field;
 -					}
 -				}
@@ -109,7 +109,7 @@ index 15c97dd79b..10bd3eb1db 100644
  
  	/**
  	 * Modify the Options of a BuddyPress "Select" Field.
-@@ -755,7 +681,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -748,7 +674,7 @@ public function select_settings_get( $options, $field_type, $args ) {
  		}
  
  		// Get keyed array of settings.
@@ -118,7 +118,7 @@ index 15c97dd79b..10bd3eb1db 100644
  
  		// --<
  		return $options;
-@@ -763,14 +689,14 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -756,14 +682,14 @@ public function select_settings_get( $options, $field_type, $args ) {
  	}
  
  	/**
@@ -135,18 +135,18 @@ index 15c97dd79b..10bd3eb1db 100644
  
  		// Init return.
  		$choices = [];
-@@ -783,40 +709,37 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -776,40 +702,37 @@ public function select_choices_get( $custom_field_id ) {
  			return $choices;
  		}
  
 -		// Bail if it's not a data type that can have a "Select".
 +		// Bail if it's not a data type that can have multiple choices.
- 		if ( ! in_array( $field_data['data_type'], $this->data_types ) ) {
+ 		if ( ! in_array( $field_data['data_type'], $this->data_types, true ) ) {
  			return $choices;
  		}
  
 -		// Bail if it's not a type of "Select".
--		if ( ! in_array( $field_data['html_type'], $this->select_types ) ) {
+-		if ( ! in_array( $field_data['html_type'], $this->select_types, true ) ) {
 -			return $choices;
 -		}
 -
@@ -157,14 +157,14 @@ index 15c97dd79b..10bd3eb1db 100644
  
  		// "Country" selects require special handling.
 -		$country_selects = [ 'Select Country', 'Multi-Select Country' ];
--		if ( in_array( $field_data['html_type'], $country_selects ) ) {
+-		if ( in_array( $field_data['html_type'], $country_selects, true ) ) {
 +		if ( $field_data['data_type'] === 'Country' ) {
  			$choices = CRM_Core_PseudoConstant::country();
  		}
  
  		// "State/Province" selects also require special handling.
 -		$state_selects = [ 'Select State/Province', 'Multi-Select State/Province' ];
--		if ( in_array( $field_data['html_type'], $state_selects ) ) {
+-		if ( in_array( $field_data['html_type'], $state_selects, true ) ) {
 +		if ( $field_data['data_type'] === 'StateProvince' ) {
  			$choices = CRM_Core_PseudoConstant::stateProvince();
  		}
@@ -184,7 +184,7 @@ index 15c97dd79b..10bd3eb1db 100644
  	 *
  	 * @since 0.5
  	 *
-@@ -828,7 +751,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -821,7 +744,7 @@ public function select_choices_get( $custom_field_id ) {
  	public function select_settings_filter( $filtered_fields, $custom_fields, $field_type ) {
  
  		// Bail early if not our Field Type.
@@ -193,7 +193,7 @@ index 15c97dd79b..10bd3eb1db 100644
  			return $filtered_fields;
  		}
  
-@@ -842,17 +765,17 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -835,16 +758,14 @@ public function select_settings_filter( $filtered_fields, $custom_fields, $field
  		}
  		*/
  
@@ -205,18 +205,16 @@ index 15c97dd79b..10bd3eb1db 100644
  		// Filter Fields to include only those which are compatible.
  		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
  			foreach ( $custom_group as $custom_field ) {
--				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
--					if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types ) ) {
-+				// if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types)) {
-+					if (isset($custom_field['serialize']) && (int) $custom_field['serialize'] === 0) {
- 						$filtered_fields[ $custom_group_name ][] = $custom_field;
- 					}
--				}
-+				// }
+-				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types, true ) ) {
+-					if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types, true ) ) {
+-						$filtered_fields[ $custom_group_name ][] = $custom_field;
+-					}
++				if (isset($custom_field['serialize']) && (int) $custom_field['serialize'] === 0) {
++					$filtered_fields[ $custom_group_name ][] = $custom_field;
+ 				}
  			}
  		}
- 
-@@ -884,7 +807,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -877,7 +798,7 @@ public function multiselect_settings_get( $options, $field_type, $args ) {
  		}
  
  		// Get keyed array of settings.
@@ -225,7 +223,7 @@ index 15c97dd79b..10bd3eb1db 100644
  
  		// --<
  		return $options;
-@@ -892,7 +815,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -885,7 +806,7 @@ public function multiselect_settings_get( $options, $field_type, $args ) {
  	}
  
  	/**
@@ -234,7 +232,7 @@ index 15c97dd79b..10bd3eb1db 100644
  	 *
  	 * @since 0.5
  	 *
-@@ -904,20 +827,15 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -897,20 +818,15 @@ public function multiselect_settings_get( $options, $field_type, $args ) {
  	public function multiselect_settings_filter( $filtered_fields, $custom_fields, $field_type ) {
  
  		// Bail early if not our Field Type.
@@ -249,8 +247,8 @@ index 15c97dd79b..10bd3eb1db 100644
  		// Filter Fields to include only those which are compatible.
  		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
  			foreach ( $custom_group as $custom_field ) {
--				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
--					if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types ) ) {
+-				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types, true ) ) {
+-					if ( ! empty( $custom_field['html_type'] ) && in_array( $custom_field['html_type'], $select_types, true ) ) {
 -						$filtered_fields[ $custom_group_name ][] = $custom_field;
 -					}
 +				if (isset($custom_field['serialize']) && (int) $custom_field['serialize'] === 1) {
@@ -258,7 +256,7 @@ index 15c97dd79b..10bd3eb1db 100644
  				}
  			}
  		}
-@@ -950,87 +868,13 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -943,87 +859,13 @@ public function radio_settings_get( $options, $field_type, $args ) {
  		}
  
  		// Get keyed array of settings.
@@ -287,17 +285,17 @@ index 15c97dd79b..10bd3eb1db 100644
 -		$field_data = $this->plugin->civicrm->custom_field->get_by_id( $custom_field_id );
 -
 -		// Bail if we don't get any.
--		if ( $field_data === false ) {
+-		if ( false === $field_data ) {
 -			return $choices;
 -		}
 -
 -		// Bail if it's not a data type that can have a "Radio" sub-type.
--		if ( ! in_array( $field_data['data_type'], $this->data_types ) ) {
+-		if ( ! in_array( $field_data['data_type'], $this->data_types, true ) ) {
 -			return $choices;
 -		}
 -
 -		// Bail if it's not "Radio".
--		if ( $field_data['html_type'] !== 'Radio' ) {
+-		if ( 'Radio' !== $field_data['html_type'] ) {
 -			return $choices;
 -		}
 -
@@ -316,8 +314,8 @@ index 15c97dd79b..10bd3eb1db 100644
 -	 *
 -	 * @since 0.5
 -	 *
--	 * @param array $filtered_fields The existing array of filtered Custom Fields.
--	 * @param array $custom_fields The array of Custom Fields.
+-	 * @param array  $filtered_fields The existing array of filtered Custom Fields.
+-	 * @param array  $custom_fields The array of Custom Fields.
 -	 * @param string $field_type The BuddyPress Field Type.
 -	 * @return array $filtered_fields The modified array of filtered Custom Fields.
 -	 */
@@ -331,8 +329,8 @@ index 15c97dd79b..10bd3eb1db 100644
 -		// Filter Fields to include only "Radio" HTML types.
 -		foreach ( $custom_fields as $custom_group_name => $custom_group ) {
 -			foreach ( $custom_group as $custom_field ) {
--				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types ) ) {
--					if ( ! empty( $custom_field['html_type'] ) && $custom_field['html_type'] == 'Radio' ) {
+-				if ( ! empty( $custom_field['data_type'] ) && in_array( $custom_field['data_type'], $this->data_types, true ) ) {
+-					if ( ! empty( $custom_field['html_type'] ) && 'Radio' === $custom_field['html_type'] ) {
 -						$filtered_fields[ $custom_group_name ][] = $custom_field;
 -					}
 -				}
@@ -347,7 +345,7 @@ index 15c97dd79b..10bd3eb1db 100644
  	/**
  	 * Filter the Custom Fields for the Setting of a "Date" Field.
  	 *
-@@ -1089,7 +933,7 @@ class CiviCRM_Profile_Sync_BP_CiviCRM_Custom_Field {
+@@ -1082,7 +924,7 @@ public function text_settings_get( $options, $field_type, $args ) {
  
  		/*
  		// Get keyed array of settings.
@@ -356,11 +354,11 @@ index 15c97dd79b..10bd3eb1db 100644
  		*/
  
  		// --<
-diff --git a/wp-content/plugins/civicrm-wp-profile-sync/includes/buddypress/cwps-bp-xprofile.php b/wp-content/plugins/civicrm-wp-profile-sync/includes/buddypress/cwps-bp-xprofile.php
-index 43e1d975e1..68dc3ce9d4 100644
---- a/wp-content/plugins/civicrm-wp-profile-sync/includes/buddypress/cwps-bp-xprofile.php
-+++ b/wp-content/plugins/civicrm-wp-profile-sync/includes/buddypress/cwps-bp-xprofile.php
-@@ -562,15 +562,9 @@ class CiviCRM_Profile_Sync_BP_xProfile {
+diff --git a/includes/buddypress/cwps-bp-xprofile.php b/includes/buddypress/cwps-bp-xprofile.php
+index 1d52bfb..c4afb27 100644
+--- a/includes/buddypress/cwps-bp-xprofile.php
++++ b/includes/buddypress/cwps-bp-xprofile.php
+@@ -563,15 +563,9 @@ public function value_update( $field_id, $user_id, $value ) {
  			$value = '';
  		}
  

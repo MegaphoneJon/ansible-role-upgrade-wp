@@ -32,7 +32,7 @@
   patch:
     src: "{{role_path}}/files/bp-profile-sync.diff"
     backup: false
-    basedir: "{{ webroot }}"
+    basedir: "{{ webroot }}/wp-content/plugins/civicrm-wp-profile-sync"
     strip: 1
   become: yes
   when: item == "civicrm-wp-profile-sync"
