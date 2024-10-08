@@ -86,7 +86,9 @@
 
 # PLUGINS
 - name: Get a list of plugins that need updating
-  shell: "wp plugin status | grep '^ U' | tr -s ' ' | cut -f 3 -d ' '"
+  # This catches "version higher than expected" plugins, gross.
+  # shell: "wp plugin status | grep '^ U' | tr -s ' ' | cut -f 3 -d ' '"
+  shell: wp plugin list --format=csv | cut -d ',' -f 1,3 | grep 'available$' | cut -d ',' -f 1
   args:
     chdir: "{{ webroot }}"
   register: plugins_needing_upgrade
