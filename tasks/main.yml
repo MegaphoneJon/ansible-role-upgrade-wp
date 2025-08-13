@@ -142,7 +142,7 @@
 
 - name: Identify if any plugins need downloading on a live site
   set_fact:
-    paid_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines|default([], True)|intersect(wp_paid_modules) }}"
+    paid_plugins_needing_upgrade: "{{ plugins_needing_upgrade.stdout_lines|default([], True)|intersect(wp_paid_modules)| difference(plugin_redlist) }}"
     module_source: zip
   when: wp_paid_modules is defined
   tags: upgrade-plugins
