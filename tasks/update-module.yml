@@ -1,5 +1,5 @@
 ---
-- name: Update a single plugin/theme (free)
+- name: Update a single plugin/theme (free) {{ item }}
   command: "wp {{ module_type }} update {{ item }}"
   args:
     chdir: "{{ webroot }}"

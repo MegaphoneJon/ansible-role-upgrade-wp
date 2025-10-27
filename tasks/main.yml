@@ -192,7 +192,7 @@
   tags: upgrade-plugins
 
 - name: Get a list of themes that need updating
-  shell: "wp theme status | grep '^ U' | tr -s ' ' | cut -f 3 -d ' '"
+  shell: "wp theme list --format=csv | cut -d ',' -f 1,3 | grep 'available$' | cut -d ',' -f 1"
   args:
     chdir: "{{ webroot }}"
   register: themes_needing_upgrade
@@ -200,16 +200,62 @@
   become_user: "{{ run_as_user }}"
   changed_when: false
   failed_when: themes_needing_upgrade.stderr != ''
+  tags: upgrade-themes
+
 
 - name: Set module variable to theme
   set_fact:
     module_type: "theme"
+  tags: upgrade-themes
+
+- name: Identify if any themes need downloading on a live site
+  set_fact:
+    paid_themes_needing_upgrade: "{{ themes_needing_upgrade.stdout_lines|default([], True)|intersect(wp_paid_modules) }}"
+    module_source: zip
+  when: wp_paid_modules is defined
+  tags: upgrade-themes
+
+- name: Generate a unique list of paid themes needing an upgrade
+  set_fact:
+    unique_paid_themes_needing_upgrade: "{{ ansible_play_hosts_all|map('extract', hostvars, 'paid_themes_needing_upgrade') | map('default', [])|list|flatten|unique }}"
+  when: paid_themes_needing_upgrade is defined and paid_themes_needing_upgrade|length > 0
+  tags: upgrade-themes
+
+- name: Download paid themes
+  include_tasks:
+    file: acquire-paid-module.yml
+  loop: "{{ unique_paid_themes_needing_upgrade }}"
+  when: unique_paid_themes_needing_upgrade is defined
+  tags: upgrade-themes
+
+- name: Update paid themes
+  include_tasks:
+    file: update-module.yml
+  loop: "{{ paid_themes_needing_upgrade }}"
+  tags: upgrade-themes
+
+- name: debug
+  debug:
+    msg: "{{ themes_needing_upgrade.stdout_lines }}"
+  tags: upgrade-themes
+
+- name: debug
+  debug:
+    msg: "{{ themes_needing_upgrade.stdout_lines | difference(wp_paid_modules | list) | difference(plugin_redlist) }}"
+  tags: upgrade-themes
+
+- name: Determine which themes should be updated normally
+  set_fact:
+    normal_themes_needing_upgrade: "{{ themes_needing_upgrade.stdout_lines | difference(wp_paid_modules | list) | difference(theme_redlist) }}"
+    module_source: normal
+  tags: upgrade-themes
 
 - name: Update themes
   include_tasks:
     file: update-module.yml
-  loop: "{{ themes_needing_upgrade.stdout_lines|default([], true) | difference(theme_redlist) }}"
-  when: themes_needing_upgrade.stdout_lines is defined and item not in theme_redlist
+  loop: "{{ normal_themes_needing_upgrade }}"
+  when: themes_needing_upgrade
+  tags: upgrade-themes
 
 - name: Update translations
   command: "{{ item }}"
