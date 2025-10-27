@@ -14,7 +14,7 @@ plugin_redlist:
   - sitepress-multilingual-cms
   - gravityformsmailchimp
   - LayerSlider
-  #- civicrm-wp-profile-sync
+  - js_composer
 theme_redlist:
   - boss
   - Total
