@@ -254,7 +254,7 @@
   include_tasks:
     file: update-module.yml
   loop: "{{ normal_themes_needing_upgrade }}"
-  when: themes_needing_upgrade
+  when: themes_needing_upgrade|length > 0
   tags: upgrade-themes
 
 - name: Update translations
