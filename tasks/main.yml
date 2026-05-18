@@ -315,7 +315,7 @@
 
 - name: Print git changelog
   debug:
-    var: changelog.stdout
+    var: changelog.stdout_lines
   changed_when: FALSE
   when: latest_commit.stdout is defined
   tags: upgrade-plugins
