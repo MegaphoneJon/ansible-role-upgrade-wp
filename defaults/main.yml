@@ -1,3 +1,5 @@
+upgrade_use_branch: false
+
 # Widely used plugins don't need thorough testing; just upgrade them.
 safe_upgrade_plugins:
   - akismet
