@@ -11,13 +11,13 @@ safe_upgrade_plugins:
 plugin_redlist:
   - stripe-cf
   - cf-civicrm
-  - buddypress
   - acfml
   - sitepress-multilingual-cms
   - gravityformsmailchimp
   - LayerSlider
   - js_composer
   - gravityforms
+  - all-in-one-wp-security-and-firewall-premium
 theme_redlist:
   - boss
   - Total
