@@ -1,5 +1,5 @@
 ---
-- name: Update a single plugin/theme (free) {{ item }}
+- name: Update a single free {{ module_type }} ({{ item }})
   command: "wp {{ module_type }} update {{ item }}"
   args:
     chdir: "{{ webroot }}"
@@ -10,7 +10,7 @@
   tags: upgrade-plugins
   when: module_source == "normal"
 
-- name: Update a single plugin/theme (paid, from zip file)
+- name: Update a single paid {{ module_type }} ({{ item }})
   command: "wp {{ module_type }} install /tmp/{{ item }}.zip --force"
   args:
     chdir: "{{ webroot }}"
@@ -19,7 +19,7 @@
   tags: upgrade-plugins
   when: module_source == "zip"
 
-- name: Get the new plugin/theme version number
+- name: Get the new {{ module_type }} version number
   shell: "wp {{ module_type }} list --format=csv | grep ^{{ item }} | cut -d ',' -f 4 "
   args:
     chdir: "{{ webroot }}"
