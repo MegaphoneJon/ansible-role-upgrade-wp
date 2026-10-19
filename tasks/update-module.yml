@@ -1,4 +1,21 @@
 ---
+# Each prior item in this loop that actually updated fired upgrader_process_complete,
+# which force-rebuilds the update_{{ module_type }}s transient outside of admin
+# context - dropping licensed updaters' data for every item still to come. Without
+# this, `wp {{ module_type }} update {{ item }}` finds no package to install, prints
+# "Update package not available.", and the task below silently treats that as success.
+- name: Force a full, admin-context update check before updating {{ item }}
+  command: >
+    wp --exec='define("WP_ADMIN", TRUE);' --user={{ wp_cli_admin_user_id }}
+    eval 'do_action("admin_init"); delete_site_transient("update_{{ module_type }}s"); wp_update_{{ module_type }}s();'
+  args:
+    chdir: "{{ webroot }}"
+  become: yes
+  become_user: "{{ run_as_user }}"
+  changed_when: false
+  tags: upgrade-plugins
+  when: module_source == "normal"
+
 - name: Update a single free {{ module_type }} ({{ item }})
   command: "wp {{ module_type }} update {{ item }}"
   args:
