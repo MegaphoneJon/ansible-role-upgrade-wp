@@ -281,18 +281,18 @@
   when: themes_needing_upgrade|length > 0
   tags: upgrade-themes
 
-- name: Update translations
-  command: "{{ item }}"
-  args:
-    chdir: "{{ webroot }}"
-  become: yes
-  become_user: "{{ run_as_user }}"
-  register: translation_result
-  with_items:
-    - 'wp language core update'
-    - 'wp language plugin update --all'
-    - 'wp language theme update --all'
-  changed_when: translation_result.stdout is not search("Translations are up to date.")
+# - name: Update translations
+#   command: "{{ item }}"
+#   args:
+#     chdir: "{{ webroot }}"
+#   become: yes
+#   become_user: "{{ run_as_user }}"
+#   register: translation_result
+#   with_items:
+#     - 'wp language core update'
+#     - 'wp language plugin update --all'
+#     - 'wp language theme update --all'
+#   changed_when: translation_result.stdout is not search("Translations are up to date.")
 
 # - name: git add translations
 #   command: git add -v -A
