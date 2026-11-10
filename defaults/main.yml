@@ -16,7 +16,6 @@ plugin_redlist:
   - gravityformsmailchimp
   - LayerSlider
   - js_composer
-  - gravityforms
   - all-in-one-wp-security-and-firewall-premium
 theme_redlist:
   - boss
